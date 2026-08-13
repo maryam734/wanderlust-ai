@@ -1,0 +1,58 @@
+<%
+    // Convert flash messages into clean arrays
+    const successMessages = Array.isArray(success)
+        ? success.filter(msg => msg && String(msg).trim().length > 0)
+        : (success && String(success).trim().length > 0
+            ? [success]
+            : []);
+
+    const errorMessages = Array.isArray(error)
+        ? error.filter(msg => msg && String(msg).trim().length > 0)
+        : (error && String(error).trim().length > 0
+            ? [error]
+            : []);
+%>
+
+
+<!-- SUCCESS MESSAGE -->
+<% if (successMessages.length > 0) { %>
+
+    <div
+        class="alert alert-success alert-dismissible fade show col-6 offset-3"
+        role="alert"
+    >
+        <% successMessages.forEach(function(message) { %>
+            <div><%= message %></div>
+        <% }); %>
+
+        <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Close"
+        ></button>
+    </div>
+
+<% } %>
+
+
+<!-- ERROR MESSAGE -->
+<% if (errorMessages.length > 0) { %>
+
+    <div
+        class="alert alert-danger alert-dismissible fade show col-6 offset-3"
+        role="alert"
+    >
+        <% errorMessages.forEach(function(message) { %>
+            <div><%= message %></div>
+        <% }); %>
+
+        <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Close"
+        ></button>
+    </div>
+
+<% } %>

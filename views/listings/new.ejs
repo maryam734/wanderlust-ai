@@ -1,0 +1,406 @@
+<% layout("/layouts/boilerplate") %>
+
+<h3 class="mb-4">Create a New Listing</h3>
+
+
+<!-- ===================================================== -->
+<!-- AI COMPLETE LISTING GENERATOR -->
+<!-- ===================================================== -->
+
+<div class="card mb-4 border-0 shadow-sm">
+
+    <div class="card-body p-4">
+
+        <div class="d-flex align-items-center mb-2">
+
+            <span class="fs-4 me-2">✨</span>
+
+            <h5 class="mb-0 fw-semibold">
+                Complete Listing Generator
+            </h5>
+
+        </div>
+
+
+        <p class="text-muted mb-3">
+            Describe your property in your own words and AI will
+            create a complete listing with a title, description,
+            location, country and price.
+        </p>
+
+
+        <div class="mb-3">
+
+            <label
+                for="aiIdea"
+                class="form-label fw-semibold"
+            >
+                Describe your property
+            </label>
+
+
+            <textarea
+                id="aiIdea"
+                class="form-control"
+                rows="4"
+                placeholder="Example: A peaceful luxury cottage near the beaches of Goa, perfect for couples looking for a relaxing weekend getaway."
+            ></textarea>
+
+
+            <div class="form-text">
+
+                Mention the property type, location,
+                surroundings, or the type of travelers it
+                is suitable for.
+
+            </div>
+
+        </div>
+
+
+        <button
+            type="button"
+            id="generateListingBtn"
+            class="btn btn-dark px-4"
+        >
+            ✨ Generate Complete Listing
+        </button>
+
+    </div>
+
+</div>
+
+
+
+<!-- ===================================================== -->
+<!-- MAIN LISTING FORM -->
+<!-- ===================================================== -->
+
+<form
+    method="POST"
+    action="/listings"
+    novalidate
+    class="needs-validation"
+    enctype="multipart/form-data"
+>
+
+
+    <!-- TITLE -->
+    <div class="mb-3">
+
+        <label
+            for="title"
+            class="form-label"
+        >
+            Title
+        </label>
+
+
+        <input
+            name="listing[title]"
+            id="title"
+            placeholder="Enter title"
+            type="text"
+            class="form-control"
+            required
+        >
+
+
+        <div class="valid-feedback">
+            Title looks good!
+        </div>
+
+    </div>
+
+
+
+    <!-- DESCRIPTION -->
+    <div class="mb-3">
+
+        <label
+            for="description"
+            class="form-label"
+        >
+            Description
+        </label>
+
+
+        <textarea
+            name="listing[description]"
+            id="description"
+            class="form-control"
+            placeholder="Your property description will appear here"
+            required
+            rows="5"
+        ></textarea>
+
+
+        <div class="invalid-feedback">
+            Please enter a short description.
+        </div>
+
+    </div>
+
+
+
+    <!-- IMAGE -->
+    <div class="mb-3">
+
+        <label
+            for="image"
+            class="form-label"
+        >
+            Upload Listing Image
+        </label>
+
+
+        <input
+            name="listing[image]"
+            id="image"
+            type="file"
+            class="form-control"
+            accept="image/png, image/jpeg, image/jpg"
+            required
+        >
+
+
+        <div class="invalid-feedback">
+            Please upload a valid image.
+        </div>
+
+    </div>
+
+
+
+    <!-- PRICE + COUNTRY -->
+    <div class="row">
+
+
+        <!-- PRICE -->
+        <div class="mb-3 col-md-4">
+
+            <label
+                for="price"
+                class="form-label"
+            >
+                Price
+            </label>
+
+
+            <input
+                name="listing[price]"
+                id="price"
+                placeholder="1200"
+                type="number"
+                class="form-control"
+                required
+            >
+
+
+            <div class="invalid-feedback">
+                Price should be valid.
+            </div>
+
+        </div>
+
+
+
+        <!-- COUNTRY -->
+        <div class="mb-3 col-md-8">
+
+            <label
+                for="country"
+                class="form-label"
+            >
+                Country
+            </label>
+
+
+            <input
+                name="listing[country]"
+                id="country"
+                placeholder="India"
+                type="text"
+                class="form-control"
+                required
+            >
+
+
+            <div class="invalid-feedback">
+                Country name should be valid.
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- LOCATION -->
+    <div class="mb-3">
+
+        <label
+            for="location"
+            class="form-label"
+        >
+            Location
+        </label>
+
+
+        <input
+            name="listing[location]"
+            id="location"
+            placeholder="Jaipur, Rajasthan"
+            type="text"
+            class="form-control"
+            required
+        >
+
+
+        <div class="invalid-feedback">
+            Location should be valid.
+        </div>
+
+    </div>
+
+
+
+    <!-- ADD BUTTON -->
+    <button
+        type="submit"
+        class="btn btn-dark add-btn mt-3"
+    >
+        Add
+    </button>
+
+</form>
+
+
+
+<!-- ===================================================== -->
+<!-- AI COMPLETE LISTING JAVASCRIPT -->
+<!-- ===================================================== -->
+
+<script>
+
+    const generateListingBtn =
+        document.getElementById("generateListingBtn");
+
+
+    generateListingBtn.addEventListener(
+        "click",
+        async function () {
+
+            const idea =
+                document.getElementById("aiIdea").value.trim();
+
+
+            // Check AI input
+            if (!idea) {
+
+                alert(
+                    "Please describe the property first."
+                );
+
+                return;
+            }
+
+
+            // Disable button while generating
+            generateListingBtn.disabled = true;
+
+            generateListingBtn.innerText =
+                "Generating Listing...";
+
+
+            try {
+
+                const response = await fetch(
+                    "/ai/generate-listing",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+
+                        body: JSON.stringify({
+                            idea: idea
+                        })
+                    }
+                );
+
+
+                const data =
+                    await response.json();
+
+
+                if (data.success) {
+
+                    const listing =
+                        data.listing;
+
+
+                    // Fill title
+                    document.getElementById("title").value =
+                        listing.title || "";
+
+
+                    // Fill description
+                    document.getElementById("description").value =
+                        listing.description || "";
+
+
+                    // Fill location
+                    document.getElementById("location").value =
+                        listing.location || "";
+
+
+                    // Fill country
+                    document.getElementById("country").value =
+                        listing.country || "";
+
+
+                    // Fill price
+                    document.getElementById("price").value =
+                        listing.price || "";
+
+
+                    alert(
+                        "✨ Complete listing generated successfully!"
+                    );
+
+                } else {
+
+                    alert(
+                        data.message ||
+                        "Could not generate listing."
+                    );
+
+                }
+
+            } catch (error) {
+
+                console.error(
+                    "AI Listing Error:",
+                    error
+                );
+
+                alert(
+                    "Something went wrong while generating the listing."
+                );
+
+            }
+
+
+            // Restore button
+            generateListingBtn.disabled = false;
+
+            generateListingBtn.innerText =
+                "✨ Generate Complete Listing";
+
+        }
+
+    );
+
+</script>

@@ -1,0 +1,1254 @@
+<% layout("/layouts/boilerplate") %>
+
+<link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+
+<div class="container listing-show">
+
+    <div class="row justify-content-center">
+
+        <div class="col-lg-8 col-md-10 col-12">
+
+            <h3 class="mb-3">
+                <%= listing.title %>
+            </h3>
+
+            <div class="card listing-card">
+
+                <img
+                    src="<%= listing.image.url %>"
+                    class="card-img-top show-img"
+                    alt="Listing Image"
+                >
+
+                <div class="card-body">
+
+                    <p class="card-text">
+                        Owned by
+                        <i>
+                            <%= listing.owner
+                                ? listing.owner.username
+                                : "Unknown User"
+                            %>
+                        </i>
+                    </p>
+
+                    <p class="card-text">
+                        <%= listing.description %>
+                    </p>
+
+                    <p class="card-text">
+                        &#8377;
+                        <%= listing.price.toLocaleString("en-IN") %>
+                        / night
+                    </p>
+
+                    <p class="card-text">
+                        <%= listing.location %>
+                    </p>
+
+                    <p class="card-text">
+                        <%= listing.country %>
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- ========================================= -->
+            <!-- TRUSTGUARD -->
+            <!-- ========================================= -->
+
+            <div class="card shadow-sm mt-4 mb-4">
+
+                <div class="card-body">
+
+                    <h4 class="mb-2">
+                        🛡️ TrustGuard
+                    </h4>
+
+                    <p class="text-muted">
+                        Listing safety & trust analysis
+                    </p>
+
+
+                    <!-- LOADING -->
+
+                    <div id="trustLoading">
+
+                        <div class="d-flex align-items-center gap-2">
+
+                            <div
+                                class="spinner-border spinner-border-sm"
+                                role="status"
+                            ></div>
+
+                            <span>
+                                Analyzing this listing...
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- TRUST RESULT -->
+
+                    <div
+                        id="trustResult"
+                        style="display: none;"
+                    >
+
+                        <!-- SCORE -->
+
+                        <div class="text-center mb-3">
+
+                            <h1 id="trustScore">
+                            </h1>
+
+                            <h5 id="riskLevel">
+                            </h5>
+
+                        </div>
+
+
+                        <!-- PROGRESS -->
+
+                        <div
+                            class="progress mb-4"
+                            style="height: 10px;"
+                        >
+
+                            <div
+                                id="trustProgress"
+                                class="progress-bar"
+                                role="progressbar"
+                                style="width: 0%;"
+                            ></div>
+
+                        </div>
+
+
+                        <!-- SIGNALS -->
+
+                        <h5 class="mb-3">
+                            🔎 Risk Analysis
+                        </h5>
+
+                        <div id="trustSignals"></div>
+
+
+                        <!-- AI INSIGHT -->
+
+                        <div
+                            id="aiTrustInsight"
+                            style="display: none;"
+                        >
+
+                            <hr>
+
+                            <h5 class="mb-3">
+                                🤖 TrustGuard Insight
+                            </h5>
+
+
+                            <div class="mb-3">
+
+                                <strong>
+                                    Summary
+                                </strong>
+
+                                <p
+                                    id="aiSummary"
+                                    class="mt-1"
+                                ></p>
+
+                            </div>
+
+
+                            <div class="mb-3">
+
+                                <strong>
+                                    🔎 Key Concern
+                                </strong>
+
+                                <p
+                                    id="aiKeyConcern"
+                                    class="mt-1"
+                                ></p>
+
+                            </div>
+
+
+                            <div class="mb-3">
+
+                                <strong>
+                                    💡 Recommendation
+                                </strong>
+
+                                <p
+                                    id="aiRecommendation"
+                                    class="mt-1"
+                                ></p>
+
+                            </div>
+
+
+                            <div>
+
+                                <strong>
+                                    🛡️ Safety Tips
+                                </strong>
+
+                                <ul
+                                    id="aiSafetyTips"
+                                    class="mt-2"
+                                >
+                                </ul>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- DISCLAIMER -->
+
+                        <div
+                            class="alert alert-light border mt-3 mb-0"
+                        >
+
+                            <small class="text-muted">
+
+                                TrustGuard provides an estimated
+                                risk assessment using available
+                                listing data. It does not determine
+                                whether a listing is fraudulent.
+
+                            </small>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <br>
+
+
+            <!-- ========================================= -->
+            <!-- MAP -->
+            <!-- ========================================= -->
+
+            <h3>Where you'll be</h3>
+
+            <div id="map"></div>
+
+            <br>
+
+
+            <!-- ========================================= -->
+            <!-- OWNER ACTIONS -->
+            <!-- ========================================= -->
+
+            <% if(currUser && listing.owner &&
+                listing.owner._id.equals(currUser._id)) { %>
+
+                <div class="d-flex gap-2">
+
+                    <a
+                        href="/listings/<%= listing._id %>/edit"
+                        class="btn btn-dark"
+                    >
+                        Edit
+                    </a>
+
+                    <form
+                        method="POST"
+                        action="/listings/<%= listing._id %>?_method=DELETE"
+                    >
+
+                        <button
+                            type="submit"
+                            class="btn btn-dark"
+                        >
+                            Delete
+                        </button>
+
+                    </form>
+
+                </div>
+
+            <% } %>
+
+
+            <hr>
+
+
+            <!-- ========================================= -->
+            <!-- REVIEW FORM -->
+            <!-- ========================================= -->
+
+            <% if(currUser) { %>
+
+                <h3>Leave a Review</h3>
+
+                <form
+                    method="POST"
+                    action="/listings/<%= listing._id %>/reviews"
+                >
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Rating
+                        </label>
+
+                        <fieldset class="starability-slot">
+
+                            <input
+                                type="radio"
+                                id="first-rate1"
+                                name="review[rating]"
+                                value="1"
+                            />
+
+                            <label
+                                for="first-rate1"
+                                title="Terrible"
+                            >
+                                1 star
+                            </label>
+
+
+                            <input
+                                type="radio"
+                                id="first-rate2"
+                                name="review[rating]"
+                                value="2"
+                            />
+
+                            <label
+                                for="first-rate2"
+                                title="Not good"
+                            >
+                                2 stars
+                            </label>
+
+
+                            <input
+                                type="radio"
+                                id="first-rate3"
+                                name="review[rating]"
+                                value="3"
+                            />
+
+                            <label
+                                for="first-rate3"
+                                title="Average"
+                            >
+                                3 stars
+                            </label>
+
+
+                            <input
+                                type="radio"
+                                id="first-rate4"
+                                name="review[rating]"
+                                value="4"
+                            />
+
+                            <label
+                                for="first-rate4"
+                                title="Very good"
+                            >
+                                4 stars
+                            </label>
+
+
+                            <input
+                                type="radio"
+                                id="first-rate5"
+                                name="review[rating]"
+                                value="5"
+                            />
+
+                            <label
+                                for="first-rate5"
+                                title="Amazing"
+                            >
+                                5 stars
+                            </label>
+
+                        </fieldset>
+
+                    </div>
+
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Comment
+                        </label>
+
+                        <textarea
+                            name="review[comment]"
+                            rows="4"
+                            class="form-control"
+                            required
+                        ></textarea>
+
+                    </div>
+
+
+                    <button class="btn btn-outline-dark">
+                        Submit
+                    </button>
+
+                </form>
+
+            <% } %>
+
+
+            <hr>
+
+
+            <!-- ========================================= -->
+            <!-- ALL REVIEWS -->
+            <!-- ========================================= -->
+             <!-- ========================================= -->
+<!-- AI REVIEW INTELLIGENCE -->
+<!-- ========================================= -->
+
+<div class="card shadow-sm mt-4 mb-4">
+
+    <div class="card-body">
+
+        <h4 class="mb-2">
+            🧠 AI Guest Insights
+        </h4>
+
+        <p class="text-muted">
+            What guests are really saying about this property
+        </p>
+
+        <div id="reviewLoading">
+
+            <div class="d-flex align-items-center gap-2">
+
+                <div
+                    class="spinner-border spinner-border-sm"
+                    role="status"
+                ></div>
+
+                <span>
+                    Analyzing guest reviews...
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div
+            id="reviewIntelligence"
+            style="display: none;"
+        >
+
+            <div class="mb-3">
+
+                <strong>
+                    Overall sentiment
+                </strong>
+
+                <h5
+                    id="reviewSentiment"
+                    class="text-success mt-1"
+                ></h5>
+
+            </div>
+
+
+            <div class="mb-3">
+
+                <strong>
+                    📋 Guest Summary
+                </strong>
+
+                <p
+                    id="reviewSummary"
+                    class="mt-1"
+                ></p>
+
+            </div>
+
+
+            <div class="mb-3">
+
+                <strong>
+                    ❤️ Guests love
+                </strong>
+
+                <ul id="reviewStrengths"></ul>
+
+            </div>
+
+
+            <div
+                class="mb-3"
+                id="reviewConcernsSection"
+            >
+
+                <strong>
+                    ⚠️ Common concerns
+                </strong>
+
+                <ul id="reviewConcerns"></ul>
+
+            </div>
+
+
+            <div class="mb-3">
+
+                <strong>
+                    👥 Best for
+                </strong>
+
+                <p
+                    id="reviewBestFor"
+                    class="mt-1"
+                ></p>
+
+            </div>
+
+
+            <div>
+
+                <strong>
+                    🚫 Not ideal for
+                </strong>
+
+                <p
+                    id="reviewNotIdeal"
+                    class="mt-1"
+                ></p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+            <h3>All Reviews</h3>
+
+            <div class="row">
+
+                <% for(let review of listing.reviews){ %>
+
+                    <div class="card col-12 col-md-6 ms-0 mb-3">
+
+                        <div class="card-body">
+
+                            <h5 class="card-title">
+
+                                @
+                                <%= review.author
+                                    ? review.author.username
+                                    : "Anonymous"
+                                %>
+
+                            </h5>
+
+
+                            <p
+                                class="starability-result card-text"
+                                data-rating="<%= review.rating %>"
+                            ></p>
+
+
+                            <p class="card-text">
+                                <%= review.comment %>
+                            </p>
+
+                        </div>
+
+
+                        <form
+                            method="POST"
+                            action="/listings/<%= listing._id %>/reviews/<%= review._id %>?_method=DELETE"
+                            class="ms-3 mb-3"
+                        >
+
+                            <button
+                                class="btn btn-sm btn-dark"
+                            >
+                                Delete Review
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                <% } %>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ========================================= -->
+<!-- LEAFLET -->
+<!-- ========================================= -->
+
+<script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+</script>
+
+
+<script>
+
+    /* =========================================
+       MAP
+       ========================================= */
+
+    <% if (
+        listing.geometry &&
+        listing.geometry.coordinates &&
+        listing.geometry.coordinates.length === 2
+    ) { %>
+
+        const coordinates =
+            <%- JSON.stringify(listing.geometry.coordinates) %>;
+
+        const longitude = coordinates[0];
+        const latitude = coordinates[1];
+
+        const map = L.map("map").setView(
+            [latitude, longitude],
+            10
+        );
+
+        L.tileLayer(
+            "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+            {
+                attribution:
+                    '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }
+        ).addTo(map);
+
+        L.marker([latitude, longitude])
+            .addTo(map)
+            .bindPopup(
+                "<b><%= listing.title %></b><br><%= listing.location %>"
+            )
+            .openPopup();
+
+    <% } else { %>
+
+        document.getElementById("map").innerHTML =
+            "<p>Location could not be found on the map.</p>";
+
+    <% } %>
+
+
+    /* =========================================
+       TRUSTGUARD
+       ========================================= */
+
+    async function loadTrustGuard() {
+
+        const listingId =
+            "<%= listing._id %>";
+
+        try {
+
+            // -----------------------------------------
+            // GET TRUST SCORE
+            // -----------------------------------------
+
+            const response = await fetch(
+                `/listings/${listingId}/trust-score`
+            );
+
+
+            const data =
+                await response.json();
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data.error ||
+                    "Unable to load TrustGuard"
+                );
+
+            }
+
+
+            // -----------------------------------------
+            // SHOW RESULT
+            // -----------------------------------------
+
+            document.getElementById(
+                "trustLoading"
+            ).style.display = "none";
+
+
+            document.getElementById(
+                "trustResult"
+            ).style.display = "block";
+
+
+            // -----------------------------------------
+            // SCORE
+            // -----------------------------------------
+
+            document.getElementById(
+                "trustScore"
+            ).innerText =
+                `${data.score}/100`;
+
+
+            // -----------------------------------------
+            // RISK LEVEL
+            // -----------------------------------------
+
+            document.getElementById(
+                "riskLevel"
+            ).innerText =
+                data.riskLevel;
+
+
+            // -----------------------------------------
+            // PROGRESS BAR
+            // -----------------------------------------
+
+            const progressBar =
+                document.getElementById(
+                    "trustProgress"
+                );
+
+
+            progressBar.style.width =
+                `${data.score}%`;
+
+
+            if (data.score >= 80) {
+
+                progressBar.classList.add(
+                    "bg-success"
+                );
+
+            } else if (data.score >= 60) {
+
+                progressBar.classList.add(
+                    "bg-warning"
+                );
+
+            } else {
+
+                progressBar.classList.add(
+                    "bg-danger"
+                );
+
+            }
+
+
+            // -----------------------------------------
+            // RISK TEXT COLOR
+            // -----------------------------------------
+
+            const riskElement =
+                document.getElementById(
+                    "riskLevel"
+                );
+
+
+            if (data.score >= 80) {
+
+                riskElement.classList.add(
+                    "text-success"
+                );
+
+            } else if (data.score >= 60) {
+
+                riskElement.classList.add(
+                    "text-warning"
+                );
+
+            } else {
+
+                riskElement.classList.add(
+                    "text-danger"
+                );
+
+            }
+
+
+            // -----------------------------------------
+            // DISPLAY SIGNALS
+            // -----------------------------------------
+
+            const signalsContainer =
+                document.getElementById(
+                    "trustSignals"
+                );
+
+            signalsContainer.innerHTML = "";
+
+
+            data.signals.forEach(
+                signal => {
+
+                    const div =
+                        document.createElement(
+                            "div"
+                        );
+
+
+                    div.classList.add(
+                        "alert",
+                        "py-2",
+                        "mb-2"
+                    );
+
+
+                    if (
+                        signal.type ===
+                        "positive"
+                    ) {
+
+                        div.classList.add(
+                            "alert-success"
+                        );
+
+                        div.innerText =
+                            `✅ ${signal.text}`;
+
+                    } else if (
+                        signal.type === "warning"
+                    ) {
+
+                        div.classList.add(
+                            "alert-warning"
+                        );
+
+                        div.innerText =
+                            `⚠️ ${signal.text}`;
+
+                    } else {
+
+                        div.classList.add(
+                            "alert-info"
+                        );
+
+                        div.innerText =
+                            `ℹ️ ${signal.text}`;
+                    }
+
+
+                    signalsContainer.appendChild(
+                        div
+                    );
+
+                }
+            );
+
+
+            // =========================================
+            // AI TRUSTGUARD EXPLANATION
+            // =========================================
+
+            try {
+
+                const aiResponse =
+                    await fetch(
+                        "/ai/trust-explanation",
+                        {
+
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body: JSON.stringify({
+
+                                score:
+                                    data.score,
+
+                                riskLevel:
+                                    data.riskLevel,
+
+                                signals:
+                                    data.signals,
+
+                                title:
+                                    "<%= listing.title %>",
+
+                                location:
+                                    "<%= listing.location %>",
+
+                                country:
+                                    "<%= listing.country %>",
+
+                                price:
+                                    "<%= listing.price %>"
+
+                            })
+
+                        }
+                    );
+
+
+                const aiData =
+                    await aiResponse.json();
+
+
+                if (
+                    aiResponse.ok &&
+                    aiData.success &&
+                    aiData.explanation
+                ) {
+
+                    const explanation =
+                        aiData.explanation;
+
+
+                    // --------------------------------
+                    // SUMMARY
+                    // --------------------------------
+
+                    document.getElementById(
+                        "aiSummary"
+                    ).innerText =
+                        explanation.summary ||
+                        "No summary available.";
+
+
+                    // --------------------------------
+                    // KEY CONCERN
+                    // --------------------------------
+
+                    document.getElementById(
+                        "aiKeyConcern"
+                    ).innerText =
+                        explanation.keyConcern ||
+                        "No major concern detected.";
+
+
+                    // --------------------------------
+                    // RECOMMENDATION
+                    // --------------------------------
+
+                    document.getElementById(
+                        "aiRecommendation"
+                    ).innerText =
+                        explanation.recommendation ||
+                        "Review the available listing information before booking.";
+
+
+                    // --------------------------------
+                    // SAFETY TIPS
+                    // --------------------------------
+
+                    const safetyTips =
+                        document.getElementById(
+                            "aiSafetyTips"
+                        );
+
+
+                    safetyTips.innerHTML = "";
+
+
+                    if (
+                        Array.isArray(
+                            explanation.safetyTips
+                        )
+                    ) {
+
+                        explanation.safetyTips
+                            .forEach(
+                                tip => {
+
+                                    const li =
+                                        document.createElement(
+                                            "li"
+                                        );
+
+                                    li.innerText =
+                                        tip;
+
+                                    safetyTips.appendChild(
+                                        li
+                                    );
+
+                                }
+                            );
+
+                    }
+
+
+                    // --------------------------------
+                    // SHOW AI SECTION
+                    // --------------------------------
+
+                    document.getElementById(
+                        "aiTrustInsight"
+                    ).style.display =
+                        "block";
+
+                }
+
+            } catch (aiError) {
+
+                console.log(
+                    "TrustGuard AI explanation error:",
+                    aiError.message
+                );
+
+                // The rule-based TrustGuard
+                // still remains visible.
+            }
+
+
+        } catch (error) {
+
+            console.log(
+                "TrustGuard error:",
+                error.message
+            );
+
+
+            document.getElementById(
+                "trustLoading"
+            ).innerHTML = `
+
+                <p class="text-danger mb-0">
+                    TrustGuard could not analyze
+                    this listing.
+                </p>
+
+            `;
+
+        }
+
+    }
+
+
+    // Start TrustGuard
+
+    loadTrustGuard();
+    // =========================================
+// AI REVIEW INTELLIGENCE
+// =========================================
+
+async function loadReviewIntelligence() {
+
+    try {
+
+        const reviews = [
+            <% listing.reviews.forEach(review => { %>
+
+                {
+                    rating: <%= review.rating %>,
+                    comment: <%- JSON.stringify(review.comment || "") %>
+                },
+
+            <% }) %>
+        ];
+
+
+        const response = await fetch(
+            "/ai/review-intelligence",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+
+                    title:
+                        "<%= listing.title %>",
+
+                    reviews:
+                        reviews
+
+                })
+            }
+        );
+
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.message ||
+                "Review analysis failed"
+            );
+
+        }
+
+
+        const intelligence =
+            data.intelligence;
+
+
+        document.getElementById(
+            "reviewLoading"
+        ).style.display = "none";
+
+
+        document.getElementById(
+            "reviewIntelligence"
+        ).style.display = "block";
+
+
+        // ---------------------------------
+        // SENTIMENT
+        // ---------------------------------
+
+        document.getElementById(
+            "reviewSentiment"
+        ).innerText =
+            intelligence.sentiment;
+
+
+        // ---------------------------------
+        // SUMMARY
+        // ---------------------------------
+
+        document.getElementById(
+            "reviewSummary"
+        ).innerText =
+            intelligence.summary;
+
+
+        // ---------------------------------
+        // STRENGTHS
+        // ---------------------------------
+
+        const strengths =
+            document.getElementById(
+                "reviewStrengths"
+            );
+
+        strengths.innerHTML = "";
+
+
+        intelligence.strengths.forEach(
+            item => {
+
+                const li =
+                    document.createElement("li");
+
+                li.innerText = item;
+
+                strengths.appendChild(li);
+
+            }
+        );
+
+
+        // ---------------------------------
+        // CONCERNS
+        // ---------------------------------
+
+        const concerns =
+            document.getElementById(
+                "reviewConcerns"
+            );
+
+        concerns.innerHTML = "";
+
+
+        if (
+            intelligence.concerns &&
+            intelligence.concerns.length > 0
+        ) {
+
+            intelligence.concerns.forEach(
+                item => {
+
+                    const li =
+                        document.createElement("li");
+
+                    li.innerText = item;
+
+                    concerns.appendChild(li);
+
+                }
+            );
+
+        } else {
+
+            document.getElementById(
+                "reviewConcernsSection"
+            ).style.display = "none";
+
+        }
+
+
+        // ---------------------------------
+        // BEST FOR
+        // ---------------------------------
+
+        document.getElementById(
+            "reviewBestFor"
+        ).innerText =
+            intelligence.bestFor;
+
+
+        // ---------------------------------
+        // NOT IDEAL FOR
+        // ---------------------------------
+
+        document.getElementById(
+            "reviewNotIdeal"
+        ).innerText =
+            intelligence.notIdealFor;
+
+
+    } catch (error) {
+
+        console.log(
+            "Review Intelligence error:",
+            error.message
+        );
+
+
+        document.getElementById(
+            "reviewLoading"
+        ).innerHTML = `
+
+            <p class="text-muted mb-0">
+                Guest insights are unavailable right now.
+            </p>
+
+        `;
+
+    }
+
+}
+
+
+loadReviewIntelligence();
+
+</script>
