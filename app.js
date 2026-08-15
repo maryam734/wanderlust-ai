@@ -4,6 +4,7 @@ if (process.env.NODE_ENV != "production") {
 
 const express = require("express");
 const app = express();
+
 require("dotenv").config();
 
 const mongoose = require("mongoose");
@@ -13,7 +14,7 @@ const ejsMate = require("ejs-mate");
 const ExpressError = require("./utils/ExpressError.js");
 
 const session = require("express-session");
-const MongoStore = require('connect-mongo').default;
+const MongoStore = require("connect-mongo").default;
 const flash = require("connect-flash");
 
 const passport = require("passport");
@@ -29,7 +30,8 @@ const userRouter = require("./routes/user.js");
 const dbUrl = process.env.ATLASDB_URL;
 
 
-// Database Connection
+// ==================== DATABASE CONNECTION ====================
+
 async function main() {
     await mongoose.connect(dbUrl);
 }
@@ -39,31 +41,40 @@ main()
         console.log("Connected to DB");
     })
     .catch((err) => {
-        console.log(err);
+        console.log("DATABASE CONNECTION ERROR:", err);
     });
 
 
-// View Engine
+// ==================== VIEW ENGINE ====================
+
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 app.engine("ejs", ejsMate);
 
 
-// Middlewares
+// ==================== MIDDLEWARES ====================
+
 app.use(express.urlencoded({ extended: true }));
-app.use(express.json()); // Added for AI Feature 1
+app.use(express.json());
 app.use(methodOverride("_method"));
 app.use(express.static(path.join(__dirname, "/public")));
+
+
+// ==================== SESSION STORE ====================
+
 const store = MongoStore.create({
     mongoUrl: dbUrl,
     secret: process.env.SECRET,
     touchAfter: 24 * 3600,
 });
-store.on("error",()=>{
-    console.log("ERROR in MONGO SESSION STORE",err);
+
+store.on("error", (err) => {
+    console.log("ERROR IN MONGO SESSION STORE:", err);
 });
 
-// Session
+
+// ==================== SESSION ====================
+
 const sessionOptions = {
     store,
     secret: process.env.SECRET,
@@ -80,7 +91,8 @@ app.use(session(sessionOptions));
 app.use(flash());
 
 
-// Passport
+// ==================== PASSPORT ====================
+
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -90,29 +102,33 @@ passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
 
-// Flash Middleware
+// ==================== FLASH + CURRENT USER ====================
+
 app.use((req, res, next) => {
     res.locals.success = req.flash("success");
     res.locals.error = req.flash("error");
-    res.locals.currUser = req.user;
+    res.locals.currUser = req.user || null;
     next();
 });
 
 
-// Routes
+// ==================== ROUTES ====================
+
 app.use("/listings", listingRouter);
 app.use("/ai", aiRouter);
 app.use("/listings/:id/reviews", reviewRouter);
 app.use("/", userRouter);
 
 
-// 404 Handler
+// ==================== 404 HANDLER ====================
+
 app.all("/{*splat}", (req, res, next) => {
     next(new ExpressError(404, "Page Not Found!"));
 });
 
 
-// Error Handler
+// ==================== ERROR HANDLER ====================
+
 app.use((err, req, res, next) => {
     const {
         statusCode = 500,
@@ -122,8 +138,6 @@ app.use((err, req, res, next) => {
     res.status(statusCode).render("error.ejs", { err });
 });
 
-
-// Server
 const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, () => {
