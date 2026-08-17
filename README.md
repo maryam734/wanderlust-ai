@@ -6,6 +6,25 @@
 **GitHub:** https://github.com/maryam734/wanderlust-ai
 
 ---
+## **Screenshots**
+
+### Wanderlust Listings
+
+![Wanderlust Listings](screenshots/Wanderlust_Listings.png)
+
+### Listing Creation
+
+![Listing Creation](screenshots/listings_creation.png)
+
+### Listing Reviews
+
+![Listing Review](screenshots/listing_review.png)
+
+### TrustGuard
+
+![TrustGuard](screenshots/trustguard_wanderlust.png)
+
+---
 
 ## Overview
 
